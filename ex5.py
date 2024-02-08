@@ -1,5 +1,5 @@
 import json
-
+import sys
 
 def Complement(nucleotide):
     dict = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'W':'M', 'M':'W'}
@@ -11,13 +11,7 @@ def list_to_string(list):
         s += e
     return s
 
-def replace_sub_lists(dna_sequence, origen, to):
-        first = dna_sequence.find_alignment(origen)
-        if first == -1:
-            return
-        dna_sequence.get_nucleotide()[first:first + len(origen)] = to
-        replace_sub_lists(dna_sequence[first:])
-        return
+
 
 
 class DNASequence:
@@ -41,7 +35,14 @@ class DNASequence:
     
     def replace_sequence(self, seq):
         self.m_nucleotides = seq.copy()
-    
+
+def replace_sub_lists(dna_sequence, origen, to):
+        first = dna_sequence.find_alignment(origen)
+        if first == -1:
+            return
+        dna_sequence.m_nucleotides[first:first + len(origen)] = to
+        replace_sub_lists(dna_sequence, origen, to)
+        return
     
 class Enzyme:
     def __init__(self):#do we need it?
@@ -55,8 +56,7 @@ class Mutase(Enzyme):
         self.m_freq = freq
     
     def process(self, dna_sequence):
-        dna_sequence.get_sequence[0::self.m_freq] = dna_sequence.get_complement[0::self.m_freq].copy()
-        assert dna_sequence.m_nucleotides[0::self.m_freq] == dna_sequence.get_complement[0::self.m_freq]
+        dna_sequence.m_nucleotides[0::int(self.m_freq)] = dna_sequence.get_complement()[0::int(self.m_freq)]
 
 class Polymerase(Enzyme):
     def process(self, dna_sequence):
@@ -65,7 +65,7 @@ class Polymerase(Enzyme):
 
 class CRISPR(Enzyme):
     def __init__(self, seq):
-        self.m_seq = seq.copy()
+        self.m_seq = seq
 
     def process(self, dna_sequence):
         replace_sub_lists(dna_sequence, self.m_seq, ['W'])
@@ -74,27 +74,47 @@ class CRISPR(Enzyme):
 class CRISPR_Cas9(CRISPR):
     def __init__(self, seq, new_seq):
         super().__init__(seq)
+        self.m_new_seq = new_seq
     
     def process(self, dna_sequence):
         super().process(dna_sequence)
-        to_replace = [nuc for nuc in self.m_seq]
-        replace_sub_lists(dna_sequence, ['W'], to_replace)
-        replace_sub_lists(dna_sequence, ['M'], DNASequence(to_replace).get_complement())
+        to_replace = [nuc for nuc in self.m_new_seq]
+        replace_sub_lists(dna_sequence, 'W', to_replace)
+        replace_sub_lists(dna_sequence, 'M', DNASequence(to_replace).get_complement())
 
 def processData(dir_path):
-    dna_name = dir_path + 'DNA.json'
+    name_index = 0
+    enzyme_index = 1
+    first_argument = 2
+    second_argument = 3
+
+    dna_name = dir_path + '/DNA.json'
     with open(dna_name, 'r') as file:
         loaded = json.load(file)
-
-    for e in loaded.values():
-        e = DNASequence([nuc for nuc in e])#filles wrong
     
-    protocol_name = dir_path + 'protocol.txt'
+    protocol_name = dir_path + '/protocol.txt'
     with open(protocol_name, 'r') as protocol_file:
         protocol = protocol_file.readlines()
 
-    enzymes = []
 
     for e in protocol:
-        arguments = e.split()
-        if(arguments[])
+        arguments = e.split(' ')
+        enzyme = Polymerase()
+        if arguments[enzyme_index] == "Polymerase":
+            enzyme = Polymerase()
+        if arguments[enzyme_index] == "Mutase":
+            enzyme = Mutase(arguments[first_argument])
+        if arguments[enzyme_index] == "CRISPR":
+            enzyme = CRISPR(arguments[first_argument])
+        if arguments[enzyme_index] == "CRISPR/Cas9":
+            enzyme = CRISPR_Cas9(arguments[first_argument], arguments[second_argument])
+        
+        loaded[arguments[name_index]] =  DNASequence([nuc for nuc in loaded[arguments[name_index]]])
+        enzyme.process(loaded[arguments[name_index]])
+
+    name = dir_path + '/ModifiedDNA.json'
+    with open(name, 'w') as file:
+        json.dump(loaded, file, indent=4)
+
+if __name__ == "__main__":
+    processData(sys.argv[1])
