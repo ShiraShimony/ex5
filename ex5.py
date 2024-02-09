@@ -19,7 +19,7 @@ class DNASequence:
         self.m_nucleotides = nucleotides.copy()
     
     def get_sequence(self):
-        return self.m_nucleotides
+        return self.m_nucleotides.copy()
     
     def get_length(self):
         return len(self.m_nucleotides)
