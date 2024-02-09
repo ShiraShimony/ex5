@@ -98,7 +98,8 @@ def processData(dir_path):
 
 
     for e in protocol:
-        arguments = e.split(' ')
+        arguments = e.strip('\n').split(' ')
+        loaded[arguments[name_index]] =  DNASequence([nuc for nuc in loaded[arguments[name_index]]])
         enzyme = Polymerase()
         if arguments[enzyme_index] == "Polymerase":
             enzyme = Polymerase()
@@ -108,9 +109,8 @@ def processData(dir_path):
             enzyme = CRISPR(arguments[first_argument])
         if arguments[enzyme_index] == "CRISPR/Cas9":
             enzyme = CRISPR_Cas9(arguments[first_argument], arguments[second_argument])
-        
-        loaded[arguments[name_index]] =  DNASequence([nuc for nuc in loaded[arguments[name_index]]])
         enzyme.process(loaded[arguments[name_index]])
+        loaded[arguments[name_index]] = list_to_string(loaded[arguments[name_index]].get_sequence())
 
     name = dir_path + '/ModifiedDNA.json'
     with open(name, 'w') as file:
