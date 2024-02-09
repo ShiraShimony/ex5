@@ -59,7 +59,7 @@ class Mutase(Enzyme):
     
     def process(self, dna_sequence):
         dna_sequence.m_nucleotides[4::int(self.m_freq)] = dna_sequence.get_complement()[4::int(self.m_freq)]
-        return dna_sequence
+        return dna_sequence.get_sequence()
 
 class Polymerase(Enzyme):
     def process(self, dna_sequence):
@@ -72,7 +72,7 @@ class CRISPR(Enzyme):
 
     def process(self, dna_sequence):
         replace_sub_lists(dna_sequence, self.m_seq, ['W'])
-        return dna_sequence
+        return dna_sequence.get_sequence()
 
 
 class CRISPR_Cas9(CRISPR):
@@ -85,7 +85,7 @@ class CRISPR_Cas9(CRISPR):
         to_replace = [nuc for nuc in self.m_new_seq]
         replace_sub_lists(dna_sequence, 'W', to_replace)
         replace_sub_lists(dna_sequence, 'M', DNASequence(to_replace).get_complement())
-        return dna_sequence
+        return dna_sequence.get_sequence()
 
 def processData(dir_path):
     name_index = 0
@@ -114,8 +114,8 @@ def processData(dir_path):
             enzyme = CRISPR(arguments[first_argument])
         if arguments[enzyme_index] == "CRISPR/Cas9":
             enzyme = CRISPR_Cas9(arguments[first_argument], arguments[second_argument])
-        loaded[arguments[name_index]] = enzyme.process(loaded[arguments[name_index]])
-        loaded[arguments[name_index]] = list_to_string(loaded[arguments[name_index]].get_sequence())
+        loaded[arguments[name_index]] = list_to_string(enzyme.process(loaded[arguments[name_index]]))
+        #loaded[arguments[name_index]] = list_to_string(loaded[arguments[name_index]])
 
     name = dir_path + '/ModifiedDNA.json'
     with open(name, 'w') as file:
