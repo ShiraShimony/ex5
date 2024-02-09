@@ -38,9 +38,11 @@ class DNASequence:
 
 def replace_sub_lists(dna_sequence, origen, to):
         first = dna_sequence.find_alignment(origen)
+        tmp = dna_sequence.m_nucleotides.copy()
         if first == -1:
             return
         dna_sequence.m_nucleotides[first:first + len(origen)] = to
+        assert dna_sequence.m_nucleotides == tmp[:first] + to + tmp[first + len(origen):]
         replace_sub_lists(dna_sequence, origen, to)
         return
     
@@ -56,7 +58,7 @@ class Mutase(Enzyme):
         self.m_freq = freq
     
     def process(self, dna_sequence):
-        dna_sequence.m_nucleotides[0::int(self.m_freq)] = dna_sequence.get_complement()[0::int(self.m_freq)]
+        dna_sequence.m_nucleotides[4::int(self.m_freq)] = dna_sequence.get_complement()[4::int(self.m_freq)]
 
 class Polymerase(Enzyme):
     def process(self, dna_sequence):
