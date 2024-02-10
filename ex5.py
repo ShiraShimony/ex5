@@ -17,35 +17,35 @@ def list_to_string(list):
 class DNASequence:
     def __init__(self, nucleotides):
         if type(nucleotides) == DNASequence:
-            self.m_nucleotides = nucleotides.m_nucleotides.copy()
+            self.nucleotides = nucleotides.nucleotides.copy()
         else:
-            self.m_nucleotides = [nuc for nuc in nucleotides]
+            self.nucleotides = [nuc for nuc in nucleotides]
     
     def get_sequence(self):
-        return self.m_nucleotides.copy()
+        return self.nucleotides.copy()
     
     def get_length(self):
-        return len(self.m_nucleotides)
+        return len(self.nucleotides)
     
     def get_complement(self):
-        return [Complement(nuc) for nuc in self.m_nucleotides]
+        return [Complement(nuc) for nuc in self.nucleotides]
     
     def get_nucleotide(self, index):
-        return self.m_nucleotides[index]
+        return self.nucleotides[index]
     
     def find_alignment(self, seq):
-        return list_to_string(self.m_nucleotides).find(seq)
+        return list_to_string(self.nucleotides).find(seq)
     
     def replace_sequence(self, seq):
-        self.m_nucleotides = seq.copy()
+        self.nucleotides = seq.copy()
 
 def replace_sub_lists(dna_sequence, origen, to):
         first = dna_sequence.find_alignment(origen)
-        tmp = dna_sequence.m_nucleotides.copy()
+        tmp = dna_sequence.nucleotides.copy()
         if first == -1:
             return
-        dna_sequence.m_nucleotides[first:first + len(origen)] = to
-        assert dna_sequence.m_nucleotides == tmp[:first] + to + tmp[first + len(origen):]
+        dna_sequence.nucleotides[first:first + len(origen)] = to
+        assert dna_sequence.nucleotides == tmp[:first] + to + tmp[first + len(origen):]
         replace_sub_lists(dna_sequence, origen, to)
         return
     
@@ -58,10 +58,10 @@ class Enzyme:
 
 class Mutase(Enzyme):
     def __init__(self, freq):
-        self.m_freq = freq
+        self.freq = freq
     
     def process(self, dna_sequence):
-        dna_sequence.m_nucleotides[(self.m_freq - 1)::int(self.m_freq)] = dna_sequence.get_complement()[(self.m_freq - 1)::int(self.m_freq)]
+        dna_sequence.nucleotides[(self.freq - 1)::int(self.freq)] = dna_sequence.get_complement()[(self.freq - 1)::int(self.freq)]
         return dna_sequence
 
 class Polymerase(Enzyme):
@@ -71,21 +71,21 @@ class Polymerase(Enzyme):
 
 class CRISPR(Enzyme):
     def __init__(self, seq):
-        self.m_seq = seq
+        self.seq = seq
 
     def process(self, dna_sequence):
-        replace_sub_lists(dna_sequence, list_to_string(self.m_seq), ['W'])
+        replace_sub_lists(dna_sequence, list_to_string(self.seq), ['W'])
         return dna_sequence
 
 
 class CRISPR_Cas9(CRISPR):
     def __init__(self, seq, new_seq):
         super().__init__(seq)
-        self.m_new_seq = new_seq
+        self.new_seq = new_seq
     
     def process(self, dna_sequence):
         super().process(dna_sequence)
-        to_replace = [nuc for nuc in self.m_new_seq]
+        to_replace = [nuc for nuc in self.new_seq]
         replace_sub_lists(dna_sequence, 'W', to_replace)
         replace_sub_lists(dna_sequence, 'M', DNASequence(to_replace).get_complement())
         return dna_sequence
