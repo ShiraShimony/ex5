@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 
 def Complement(nucleotide):
     """
@@ -277,12 +278,12 @@ def processData(dir_path):
     second_argument = 3
 
     # Load DNA data from JSON file
-    dna_name = dir_path + '/DNA.json'
+    dna_name = os.path.join(dir_path, 'DNA.json')
     with open(dna_name, 'r') as file:
         loaded = json.load(file)
     
     # Load enzyme protocol from text file
-    protocol_name = dir_path + '/protocol.txt'
+    protocol_name = os.path.join(dir_path, 'protocol.txt')
     with open(protocol_name, 'r') as protocol_file:
         protocol = protocol_file.readlines()
 
@@ -302,7 +303,7 @@ def processData(dir_path):
         loaded[arguments[name_index]] = list_to_string(enzyme.process(loaded[arguments[name_index]]).get_sequence())
 
     # Save modified DNA sequences to a new JSON file
-    name = dir_path + '/ModifiedDNA.json'
+    name = os.path.join(dir_path, 'ModifiedDNA.json')
     with open(name, 'w') as file:
         json.dump(loaded, file, indent=4)
 
