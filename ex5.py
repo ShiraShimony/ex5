@@ -15,18 +15,6 @@ def Complement(nucleotide):
     dict = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'W':'M', 'M':'W'}
     return dict[nucleotide]
 
-def list_to_string(lst):
-    """
-    Converts a list of characters into a single string.
-
-    Parameters:
-    - lst (list): List of characters.
-
-    Returns:
-    - str: A string containing all characters from the input list concatenated.
-    """
-    return ''.join(lst)
-
 class DNASequence:
     """
     Represents a DNA sequence.
@@ -93,7 +81,15 @@ class DNASequence:
         Returns:
         - int: Index of the first occurrence or -1 if not found.
         """
-        return list_to_string(self.nucleotides).find(seq)
+        for i in range(len(self.nucleotides) - len(seq)):
+            b = True
+            for j in range(len(seq)):
+                if self.nucleotides[i + j] != seq[j]:
+                    b = False
+                    break
+            if b:
+                return i
+        return -1
     
     def replace_sequence(self, seq):
         """
@@ -224,7 +220,7 @@ class CRISPR(Enzyme):
         Returns:
         - DNASequence: The modified DNA sequence.
         """
-        replace_sub_lists(dna_sequence, list_to_string(self.seq), ['W'])
+        replace_sub_lists(dna_sequence, self.seq, ['W'])
         return dna_sequence
 
 class CRISPR_Cas9(CRISPR):
@@ -272,10 +268,6 @@ def processData(dir_path):
     Parameters:
     - dir_path (str): Directory path containing DNA data and protocol files.
     """
-    name_index = 0
-    enzyme_index = 1
-    first_argument = 2
-    second_argument = 3
 
     # Load DNA data from JSON file
     dna_name = os.path.join(dir_path, 'DNA.json')
@@ -290,17 +282,21 @@ def processData(dir_path):
     # Process each line in the protocol
     for e in protocol:
         arguments = e.strip('\n').split(' ')
-        loaded[arguments[name_index]] =  DNASequence([nuc for nuc in loaded[arguments[name_index]]])
+        loaded[sequence_name] =  DNASequence([nuc for nuc in loaded[sequence_name]])
         enzyme = Polymerase()  # Default enzyme is Polymerase
-        if arguments[enzyme_index] == "Polymerase":
+        if len(arguments == 4):
+            sequence_name, enzyme_type, first_argument, second_argument = arguments
+        else:
+            sequence_name, enzyme, first_argument = arguments                        
+        if enzyme_type == "Polymerase":
             enzyme = Polymerase()
-        if arguments[enzyme_index] == "Mutase":
+        if enzyme_type == "Mutase":
             enzyme = Mutase(arguments[first_argument])
-        if arguments[enzyme_index] == "CRISPR":
+        if enzyme_type == "CRISPR":
             enzyme = CRISPR(arguments[first_argument])
-        if arguments[enzyme_index] == "CRISPR/Cas9":
-            enzyme = CRISPR_Cas9(arguments[first_argument], arguments[second_argument])
-        loaded[arguments[name_index]] = list_to_string(enzyme.process(loaded[arguments[name_index]]).get_sequence())
+        if enzyme_type == "CRISPR/Cas9":
+            enzyme = CRISPR_Cas9(first_argument, second_argument)
+        loaded[sequence_name] = ''.join(enzyme.process(loaded[sequence_name]).get_sequence())
 
     # Save modified DNA sequences to a new JSON file
     name = os.path.join(dir_path, 'ModifiedDNA.json')
