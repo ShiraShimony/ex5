@@ -282,18 +282,20 @@ def processData(dir_path):
     # Process each line in the protocol
     for e in protocol:
         arguments = e.strip('\n').split(' ')
-        loaded[sequence_name] =  DNASequence([nuc for nuc in loaded[sequence_name]])
         enzyme = Polymerase()  # Default enzyme is Polymerase
-        if len(arguments == 4):
+        if len(arguments) == 4:
             sequence_name, enzyme_type, first_argument, second_argument = arguments
+        elif len(arguments) == 3:
+            sequence_name, enzyme_type, first_argument = arguments 
         else:
-            sequence_name, enzyme, first_argument = arguments                        
+            sequence_name, enzyme_type = arguments 
+        loaded[sequence_name] =  DNASequence([nuc for nuc in loaded[sequence_name]])
         if enzyme_type == "Polymerase":
             enzyme = Polymerase()
         if enzyme_type == "Mutase":
-            enzyme = Mutase(arguments[first_argument])
+            enzyme = Mutase(int(first_argument))
         if enzyme_type == "CRISPR":
-            enzyme = CRISPR(arguments[first_argument])
+            enzyme = CRISPR(first_argument)
         if enzyme_type == "CRISPR/Cas9":
             enzyme = CRISPR_Cas9(first_argument, second_argument)
         loaded[sequence_name] = ''.join(enzyme.process(loaded[sequence_name]).get_sequence())
@@ -302,6 +304,13 @@ def processData(dir_path):
     name = os.path.join(dir_path, 'ModifiedDNA.json')
     with open(name, 'w') as file:
         json.dump(loaded, file, indent=4)
+
+
+def main():
+        processData(sys.argv[1])
+
+if __name__ == '__main__':
+    main()
 
 # Example usage:
 # processData('/path/to/data_directory')
